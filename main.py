@@ -3,6 +3,7 @@ import numpy as np
 import random
 from genuineVsRand.data import createHiggsData, createHconsData
 from genuineVsRand.tests import time_test
+from rand_svf.test import test_svd
 from svd_solver.test import solvers_timing
 import os
 import glob
@@ -13,9 +14,9 @@ import re
 
 def merge_txt_files(folder_path, output_file):
     # Get all txt files in the folder
-    all_txt_files = glob.glob(os.path.join(folder_path, '*.txt'))
+    txt_files = glob.glob(os.path.join(folder_path, '*.txt'))
     
-    txt_files = [f for f in all_txt_files if 'intelex' not in os.path.basename(f).lower()]
+    # txt_files = [f for f in all_txt_files if 'row' not in os.path.basename(f).lower()]
     
     with open(output_file, 'w') as outfile:
         for txt_file in txt_files:
@@ -23,8 +24,8 @@ def merge_txt_files(folder_path, output_file):
                 outfile.write(infile.read() + '\n')
 
 # Specify the folder containing the txt files and the output file
-folder_path = 'prem_data'
-output_file = 'merged_output.txt'
+folder_path = 'prem_data_rand'
+output_file = 'merged_output_rand22.txt'
 
 # Merge the txt files
 # merge_txt_files(folder_path, output_file)
@@ -55,9 +56,10 @@ def test_solvers() -> None:
     
 # test_solvers()
 
-def sim_rand_svf():
-    
+def sim_rand_svd():
+    test_svd()
 
+# sim_rand_svd()
 
 def t():
     
@@ -129,6 +131,227 @@ def t():
     plt.show()
     # plt.savefig('results.png', dpi=300)
 
+def check_accuracy():
+    
+    df_rand = pd.read_csv('merged_data_rand.csv')
+    df_norm = pd.read_csv('merged_data.csv')
+    
+    df_rand['over'] = df_rand['over'].astype(int)
+    df_rand['iter'] = df_rand['iter'].astype(str)
+    df_rand = df_rand[df_rand['normalizer'] == 'QR']
+    # df_rand = df_rand[df_rand['driver'] == 'gesdd']
+    df_rand['over'] = df_rand['over']/df_rand['c']
+    df_rand = df_rand[df_rand['over'] == 0.15]
+    df_rand = df_rand[df_rand['iter'] == '7']
+    df_rand['solver'] = ['rand2']*len(df_rand)
+    
+    df_norm = df_norm[df_norm['solver'] == 'full']
+    
+    df_rand = df_rand[['r', 'c', 'comp', 'sing_values', 'solver', 'time']]
+    df_norm = df_norm[['r', 'c', 'comp', 'sing_values', 'solver', 'time']]
+    
+    df = pd.concat([df_norm, df_rand], axis=0, ignore_index=True)
+    df.reset_index(drop=True, inplace=True)
+    df['sing_values'] = df['sing_values'].str.split('; ')
+    
+    df = df[df['c'] == 300]
+    df = df[df['r'] == 10000]
+    df = df[df['comp'] == 0.1]
+    
+    
+    df['sing_values'] = df['sing_values'].apply(lambda x: [float(i) for i in x])
+    
+    sing_values1 = np.array(df[df['solver'] == 'full']['sing_values'].iloc[0])
+    sing_values2 = np.array(df[df['solver'] == 'rand2']['sing_values'].iloc[0])
+    
+    print(f"rand - full: { df[df['solver'] == 'rand2']['time'].iloc[0]-df[df['solver'] == 'full']['time'].iloc[0] }")
+    print(np.linalg.norm((sing_values1 - sing_values2)/sing_values1))
+    print(np.linalg.norm(sing_values1 - sing_values2)/np.linalg.norm(sing_values1))
+    
+# check_accuracy()
+
+def d3_plot():
+    
+    df = pd.read_csv('merged_data_rand.csv')
+    
+    df = df.astype(str)
+    df['comp'] = df['comp'].astype(float)
+
+    # Prepare DataFrame for plotting
+    # df = df[['r', 'c', 'time', 'comp', 'over', 'iter', 'normalizer', 'driver']]
+    df['iter'] = df['iter'].astype(int)
+    df['r'] = df['r'].astype(int)
+    df['c'] = df['c'].astype(float)
+    df['time'] = df['time'].astype(float)
+    df['over'] = df['over'].astype(float)
+    df = df[df['c'] < 400]
+    df = df[df['iter'] == 7]
+    # df = df[df['over'] == 'LU']
+    df = df[df['driver'] == 'gesdd']
+    df['sss'] = df['over']/df['c']
+    # df = df[df['sss'] == 0.1]
+    
+    labels = df['normalizer'].unique()
+    unique_groups = df['c'].unique()
+    unique_groups.sort()
+
+    solver_colors = {lbl: color for lbl, color in zip(labels, ['blue', 'red', 'green'])}
+    # solver_colors = {lbl: color for lbl, color in zip(labels, ['blue', 'red'])}
+
+    for i, group in enumerate(unique_groups):
+        if i != 2:
+            continue
+
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111, projection='3d')
+        
+        group_df = df[df['c'] == group]
+        for lbl in labels:
+            solver_df = group_df[group_df['normalizer'] == lbl]
+            sorted_solver_df = solver_df.sort_values(['sss', 'comp'], ascending=[True, True])
+            
+            previous_r = None
+            segment_x = []
+            segment_y = []
+            segment_z = []
+            
+            for _, row in sorted_solver_df.iterrows():
+                current_r = row['sss']
+                if previous_r is not None and current_r != previous_r:
+                    # Plot the segment
+                    ax.plot3D(segment_x, segment_y, segment_z, label=lbl, color=solver_colors[lbl])
+                    segment_x = []
+                    segment_y = []
+                    segment_z = []
+                segment_x.append(row['sss'])
+                segment_y.append(row['comp'])
+                segment_z.append(row['time'])
+                previous_r = current_r
+            
+            # Plot the last segment
+            if segment_x:
+                ax.plot3D(segment_x, segment_y, segment_z, label=lbl, color=solver_colors[lbl])
+        
+        ax.set_title(f'Time needed for PCA for {int(group)} columns')
+        ax.set_xlabel('Iter')
+        ax.set_ylabel('Components')
+        ax.set_zlabel('Time needed for fitting (seconds)')
+        ax.legend()
+
+        handles, labels = ax.get_legend_handles_labels()
+        unique_labels = {label: handle for handle, label in zip(handles, labels)}
+        ax.legend(unique_labels.values(), unique_labels.keys())
+
+        plt.tight_layout()
+        plt.show()
+
+d3_plot()
+
+def calculate_norm1(row):
+    sing_values = np.array(row['sing_values'])
+    sing_values_df2 = np.array(row['sing_values_df2'])
+    if np.linalg.norm(sing_values_df2) == 0:  # Avoid division by zero
+        return np.nan
+    return np.linalg.norm(sing_values_df2 - sing_values) / np.linalg.norm(sing_values_df2)
+    
+def calculate_norm2(row):
+    sing_values = np.array(row['sing_values'])
+    sing_values_df2 = np.array(row['sing_values_df2'])
+    if np.linalg.norm(sing_values_df2) == 0:  # Avoid division by zero
+        return np.nan
+        return np.linalg.norm(sing_values_df2 - sing_values) / np.linalg.norm(sing_values_df2)
+    return np.linalg.norm((sing_values_df2 - sing_values)/sing_values_df2)
+
+def plot_accuracy():
+    df_rand = pd.read_csv('merged_data_rand.csv')
+    df_norm = pd.read_csv('merged_data.csv')
+    
+    df_rand['over'] = df_rand['over']/df_rand['c']
+    df_rand['solver'] = ['rand2']*len(df_rand)
+    
+    df_norm = df_norm[df_norm['solver'] == 'full']
+    
+    df_rand = df_rand[['r', 'c', 'comp', 'sing_values', 'solver', 'normalizer', 'iter', 'over', 'time', 'driver']]
+    df_norm = df_norm[['r', 'c', 'comp', 'sing_values', 'solver',]]
+    
+    df = df_rand.merge(df_norm[['r', 'c', 'comp', 'sing_values', 'solver']],
+                       on=['r', 'c', 'comp'],
+                       suffixes=('', '_df2'))
+    
+    df['sing_values'] = df['sing_values'].str.split('; ')
+    df['sing_values_df2'] = df['sing_values_df2'].str.split('; ')
+    df['sing_values'] = df['sing_values'].apply(lambda x: [float(i) for i in x])
+    df['sing_values_df2'] = df['sing_values_df2'].apply(lambda x: [float(i) for i in x])
+
+    df['acc_1'] = df.apply(calculate_norm1, axis=1)
+    df['acc_2'] = df.apply(calculate_norm2, axis=1)
+    
+    
+    df = df[['r', 'c', 'comp', 'acc_1', 'acc_2', 'iter', 'over', 'normalizer', 'time', 'driver']]
+    df = df[df['c'] < 400]
+    df = df[df['iter'] == 7]
+    df = df[df['comp'] == 0.2]
+    df = df[df['over'] == 0.15]
+    df = df[df['c'] == 300]
+    df = df[df['normalizer'] != 'none']
+    df['acc_1'] = df['acc_1']
+    print(df.head(4))
+    
+    labels = df['normalizer'].unique()
+    unique_groups = df['c'].unique()
+    unique_groups.sort()
+
+    solver_colors = {lbl: color for lbl, color in zip(labels, ['blue', 'red'])}
+
+    for i, group in enumerate(unique_groups):
+        if i != 1:
+            continue
+
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111, projection='3d')
+        
+        group_df = df[df['c'] == group]
+        for lbl in labels:
+            solver_df = group_df[group_df['normalizer'] == lbl]
+            sorted_solver_df = solver_df.sort_values(['over', 'comp'], ascending=[True, True])
+            
+            previous_r = None
+            segment_x = []
+            segment_y = []
+            segment_z = []
+            
+            for _, row in sorted_solver_df.iterrows():
+                current_r = row['over']
+                if previous_r is not None and current_r != previous_r:
+                    # Plot the segment
+                    ax.plot3D(segment_x, segment_y, segment_z, label=lbl, color=solver_colors[lbl])
+                    segment_x = []
+                    segment_y = []
+                    segment_z = []
+                segment_x.append(row['over'])
+                segment_y.append(row['comp'])
+                segment_z.append(row['acc_1'])
+                previous_r = current_r
+            
+            # Plot the last segment
+            if segment_x:
+                ax.plot3D(segment_x, segment_y, segment_z, label=lbl, color=solver_colors[lbl])
+        
+        ax.set_title(f'Time needed for PCA for {int(group)} columns')
+        ax.set_xlabel('Iter')
+        ax.set_ylabel('Components')
+        ax.set_zlabel('Time needed for fitting (seconds)')
+        ax.legend()
+
+        handles, labels = ax.get_legend_handles_labels()
+        unique_labels = {label: handle for handle, label in zip(handles, labels)}
+        ax.legend(unique_labels.values(), unique_labels.keys())
+
+        plt.tight_layout()
+        plt.show()
+
+# plot_accuracy()
+
 def d3_plot():
     
     with open('merged_output.txt', 'r') as file:
@@ -157,6 +380,7 @@ def d3_plot():
                                                  'expl_var', 'sing_values']  # Replace with your actual column names
     
     df.columns = column_names
+    
     df_intel.columns = column_names
     df = df.astype(str)
     df_intel = df_intel.astype(str)
@@ -253,116 +477,5 @@ def d3_plot():
 
         plt.tight_layout()
         plt.show()
-        
-    # Remove any unused subplots
-    # for j in range(i + 1, num_rows * num_cols):
-    #     fig.delaxes(axes[j])
 
-    # plt.tight_layout()
-    # plt.show()
-    # Adjust layout and show plot
-    # plt.savefig('results.png', dpi=300)
-#
 # d3_plot()
-
-
-
-# for k in range(1):
-#     random.seed(1)
-#     np.random.seed(1)
-#     X = np.array(np.random.rand(100,10))
-    
-#     # Scale half of the singluar values of the original matrix to create a new one
-#     U, Sigma, Vt = np.linalg.svd(X, full_matrices=False)
-#     n = (([2]*(int(len(Sigma)/2)))+([1]*(int(len(Sigma)/2))))
-#     X2 = U@(np.diag(Sigma)*n)@Vt
-    
-#     C = np.cov(X, rowvar=False)
-#     C2 = np.cov(X2, rowvar=False)
-
-#     vmin = -0.04
-#     vmax = 0.2
-    
-#     plt.figure(figsize=(8, 6))
-#     plt.imshow(C, cmap='viridis', interpolation='nearest', vmin=vmin, vmax=vmax)
-#     plt.colorbar(label='Covariance')
-#     plt.title('Covariance Matrix Heatmap')
-#     plt.xlabel('Variables')
-#     plt.ylabel('Variables')
-#     plt.xticks(np.arange(len(C)), np.arange(1, len(C)+1))
-#     plt.yticks(np.arange(len(C)), np.arange(1, len(C)+1))
-#     plt.savefig('0.png')
-#     plt.close()
-
-#     plt.figure(figsize=(8, 6))
-#     plt.imshow(C2, cmap='viridis', interpolation='nearest', vmin=vmin, vmax=vmax)
-#     plt.colorbar(label='Covariance')
-#     plt.title('Covariance Matrix Heatmap')
-#     plt.xlabel('Variables')
-#     plt.ylabel('Variables')
-#     plt.xticks(np.arange(len(C2)), np.arange(1, len(C2)+1))
-#     plt.yticks(np.arange(len(C2)), np.arange(1, len(C2)+1))
-#     plt.savefig('1.png')
-#     plt.close()
-
-def quick_test():
-    merged_lines = []
-    with open('merged_output.txt', 'r') as file:
-        lines = file.readlines()
-        
-        # Merge every two lines into one
-        for i in range(0, len(lines), 2):
-            merged_line = lines[i].strip() + lines[i+1].strip()
-            merged_lines.append(merged_line)
-            
-    df = pd.DataFrame(merged_lines)
-
-    # Split the merged lines by comma and expand into separate columns
-    df = df[0].str.split(',', expand=True)
-
-    # Ensure all columns are treated as strings
-    df = df.astype(str)
-
-    column_names = ['solver', 'multiplier', 'r', 'c', 'time',
-                                                 'expl_var', 'sing_values']  # Replace with your actual column names
-
-    df.columns = column_names
-    
-    
-    df['sing_values'] = df['sing_values'].apply(convert_to_list)
-
-    df = df[(df['multiplier'] == '1')]
-    df = df[['r', 'c', 'sing_values', 'solver']]
-    df = df[(df['solver'] == 'full') | (df['solver'] == 'randomized')]
-    df['r'] = df['r'].astype(int)
-    df['c'] = df['c'].astype(int)
-
-    result = []
-    for (c, r), group in df.groupby(['c', 'r']):
-        if len(group) == 2:
-            # Extract time lists for both rows
-            row_a = group[group['solver'] == 'full'].iloc[0]
-            row_b = group[group['solver'] == 'randomized'].iloc[0]
-        
-            # Extract time lists
-            time_a = row_a['sing_values']
-            time_b = row_b['sing_values']
-        
-            subtraction = [(np.linalg.norm(a - b))/np.linalg.norm(a) for a, b in zip(time_a, time_b)]
-            # Append the result
-            result.append({'r': r, 'c': c, 'subtraction': subtraction})
-
-    # Convert the result into a DataFrame
-    result_df = pd.DataFrame(result)
-
-    print(result_df)
-    
-    
-    
-def convert_to_list(value):
-    return [float(num) if '.' in num else int(num) for num in value.split('; ')]
-
-    
-# quick_test()
-
-#100 000
