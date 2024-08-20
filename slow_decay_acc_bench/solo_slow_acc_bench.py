@@ -54,7 +54,6 @@ def run_benchmark_solo_slow() -> None:
                     for ov in n_oversamples:
                         print(f'oversamples {ov}')
                         for n in normalizer:
-                            # for d in driver:
                             rand_svd_benchmark_settings(X=X_centered, rows=i,cols=c,
                                     n_components=comp,n_iter=it,
                                     n_oversamples=ov, normalizer=n, driver='gesdd')

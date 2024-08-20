@@ -29,14 +29,14 @@ def read_csv():
     df.to_csv('merged_data_8_rand.csv', index=False)
 
 def calculate_norm1(row):
-    sing_values = np.array(row['sing_values'])
+    sing_values = np.array(row['sing_values_df1'])
     sing_values_df2 = np.array(row['sing_values_df2'])
     if np.linalg.norm(sing_values_df2) == 0:  # Avoid division by zero
         return np.nan
     return np.linalg.norm(sing_values_df2 - sing_values) / np.linalg.norm(sing_values_df2)
     
 def calculate_norm2(row):
-    sing_values = np.array(row['sing_values'])
+    sing_values = np.array(row['sing_values_df1'])
     sing_values_df2 = np.array(row['sing_values_df2'])
     if np.linalg.norm(sing_values_df2) == 0:
         return np.nan
