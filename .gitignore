@@ -18,6 +18,5 @@ var/
 .installed.cfg
 *.egg
 
-*.csv
 *.txt
 *.png
