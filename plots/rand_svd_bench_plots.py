@@ -45,17 +45,19 @@ def rand_svd_3d_timing_plot(filename):
         if segment_x:
             ax.plot3D(segment_x, segment_y, segment_z, label=lbl, color=solver_colors[lbl])
 
-    ax.set_title('Randomized SVD timing (50 000 x 1 000 matrix)')
+    ax.set_title('Randomized SVD Timing (50 000 x 1 000 matrix) (8 Threads)') 
     ax.set_xlabel('Number of Oversamples')
     ax.set_ylabel('Number of Iterations')
-    ax.set_zlabel('Fitting time (seconds)')
+    ax.set_zlabel('Fitting Time (seconds)')
 
     handles, labels = ax.get_legend_handles_labels()
     unique_labels = {label: handle for handle, label in zip(handles, labels)}
     ax.legend(unique_labels.values(), unique_labels.keys())
 
     plt.tight_layout()
-    plt.show()
+    ax.view_init(elev=10, azim=250)
+    plt.savefig('images/solo_timing_8.png', dpi=300, bbox_inches=None)
+    # plt.show()
 
 def rand_svd_3d_accuracy_plot(filename_full: str, filename_rand:str, normalizers: int, acc_method: int, log: bool):
     dff = pd.read_csv(filename_full)
@@ -138,15 +140,16 @@ def rand_svd_3d_accuracy_plot(filename_full: str, filename_rand:str, normalizers
             if segment_x:
                 ax.plot3D(segment_x, segment_y, segment_z, label=lbl, color=solver_colors[lbl])
         
-        ax.set_title(f'SVD Accuracy on 50000x1000 matrix')
-        ax.set_xlabel('oversamples')
-        ax.set_ylabel('iterations')
-        ax.set_zlabel('Accuracy (Lower better)')
-        ax.legend()
+        ax.set_title(f'Randomized SVD Accuracy (50 000 x 1 000 matrix)')
+        ax.set_xlabel('Number of Oversamples')
+        ax.set_ylabel('Number of Iterations')
+        ax.set_zlabel('Relative Error')
 
         handles, labels = ax.get_legend_handles_labels()
         unique_labels = {label: handle for handle, label in zip(handles, labels)}
-        ax.legend(unique_labels.values(), unique_labels.keys())
+        plt.legend(unique_labels.values(), unique_labels.keys(),title='Normalizer')
 
         plt.tight_layout()
-        plt.show()
+        ax.view_init(elev=10, azim=40)
+        plt.savefig('images/solo_acc_2_2.png', dpi=300, bbox_inches=None)
+        # plt.show()
