@@ -11,9 +11,10 @@ def increment_3d_timing_plot(filename):
     df = pd.read_csv(filename)
     df = df[['solver', 'r', 'c', 'time', 'comp']]
     
-    # df = df[df['solver'] != 'intelex full']
-    
-    # df['time'] = np.log(df['time'])
+    df['time'] = np.log(df['time'])
+    df = df[(df['comp'] == 2) | (df['comp'] == 4) | (df['comp'] == 6) | (df['comp'] == 8) |
+            (df['comp'] == 10) | (df['comp'] == 12) | (df['comp'] == 14) | (df['comp'] == 16) |
+            (df['comp'] == 18) | (df['comp'] == 20)]
 
     label = df['solver'].unique()
     
@@ -23,7 +24,7 @@ def increment_3d_timing_plot(filename):
     solver_colors = {
         label[0]: 'blue',
         label[1]: 'red',
-        label[2]: 'green',
+        # label[2]: 'green',
     }
     
     for i, group in enumerate(unique_groups):
@@ -59,9 +60,10 @@ def increment_3d_timing_plot(filename):
         
         ax.set_title(f'PCA Timing ({int(group)} Columns) (8 Threads)')
         ax.set_xlim(0, 110000)
+        plt.yticks(np.arange(2, 21, 4))
         ax.set_xlabel('Number of Rows')
-        ax.set_ylabel('Components/Columns')
-        ax.set_zlabel('Fitting Time (seconds)')
+        ax.set_ylabel('Number of Components')
+        ax.set_zlabel('Log(Fitting Time) (log(seconds))')
         ax.legend()
         
         handles, labels = ax.get_legend_handles_labels()
@@ -69,7 +71,7 @@ def increment_3d_timing_plot(filename):
         ax.legend(unique_labels.values(), unique_labels.keys())
 
         plt.tight_layout()
-        ax.view_init(elev=14, azim=210)
+        ax.view_init(elev=14, azim=235)
         plt.savefig(f'images/incr_{group}_8.png', dpi=300, bbox_inches=None)
         # plt.show()
 
@@ -79,9 +81,9 @@ def increment_3d_accuracy_plot(filename: str, columns: int, method: int):
     df['sing_values'] = df['sing_values'].apply(ast.literal_eval)
     df['sing_values'] = df['sing_values'].apply(lambda x: [float(i) for i in x])
     
-    df = df[(df['comp'] == 2) | (df['comp'] == 4) | (df['comp'] == 6) | (df['comp'] == 8) |
-            (df['comp'] == 10) | (df['comp'] == 12) | (df['comp'] == 14) | (df['comp'] == 16) |
-            (df['comp'] == 18) | (df['comp'] == 20)]
+    # df = df[(df['comp'] == 2) | (df['comp'] == 4) | (df['comp'] == 6) | (df['comp'] == 8) |
+    #         (df['comp'] == 10) | (df['comp'] == 12) | (df['comp'] == 14) | (df['comp'] == 16) |
+    #         (df['comp'] == 18) | (df['comp'] == 20)]
 
     df = df[df['solver'] != 'intelex full']
     
@@ -110,10 +112,10 @@ def increment_3d_accuracy_plot(filename: str, columns: int, method: int):
 
     ax.set_xlabel('Number of Rows')
     ax.set_ylabel('Relative Error (%)')
-    ax.set_title(f'Full vs Randomized Accuracy ({columns} columns)')
-    ax.legend(title='Components/Columns')
-    # plt.savefig(f'images/acc_incr_{columns}.png', dpi=300)
-    plt.show()
+    ax.set_title(f'Standard vs Randomized PCA Accuracy ({columns} columns)')
+    ax.legend(title='Components')
+    plt.savefig(f'images/acc_incr_{columns}.png', dpi=300)
+    # plt.show()
 
 def heatmap(filename, columns):
     df = pd.read_csv(filename)

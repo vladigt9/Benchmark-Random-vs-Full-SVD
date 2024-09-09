@@ -30,8 +30,8 @@ np.random.seed(1)
 
 # Increment benchmarking 3d plot of timing
 # for i in range(1,11):
-#     heatmap('data/final_data_incr_slow.csv', columns=i*100)
-increment_3d_timing_plot(filename='final_data_8_fvr.csv')
+    # heatmap('data/final_data_incr_slow.csv', columns=i*100)
+# increment_3d_timing_plot(filename='data/final_data_small_8.csv')
 
 # Increment benchmarking plot of accuaracy
 # for i in range(1,11):
@@ -40,18 +40,19 @@ increment_3d_timing_plot(filename='final_data_8_fvr.csv')
     # increment_3d_accuracy_plot('data/final_data_incr_slow.csv', columns=i*100, method=2)
 
 # Rand SVD 3d plot of timing
-# rand_svd_3d_timing_plot(filename='data/final_data_8_solo.csv')
+# rand_svd_3d_timing_plot(filename='data/final_data_1_solo.csv')
 
 
 # Rnad SVD 3d plot for accuracy
-# rand_svd_3d_accuracy_plot(filename_full='data/final_data_1_fvr.csv', 
-#                           filename_rand='data/final_data_1_solo.csv',
-#                           normalizers=2, acc_method=2, log=False)
+# rand_svd_3d_accuracy_plot(filename_full='data/final_data_incr_slow.csv', 
+#                           filename_rand='data/final_data_solo_slow.csv',
+#                           normalizers=3, acc_method=2, log=False)
 
 # perform_rand_arp_bench()
 
 # plot_timing_sparse('test.csv', 60000)
-# plot_timing_sparse('data/final_data_sparse_8.csv', 60000)
-# sparse_3d_acc_plot('data/final_data_sparse_8.csv', 2, False, 6000)
+# plot_timing_sparse('data/final_data_sparse_1.csv', 60000)
+sparse_3d_acc_plot('data/final_data_sparse_8.csv', 2, False, 6000)
+
 # merge_txt_files('prem_data_slow_sm', 'slow_sm.csv')
 # read_csv('slow_sm.csv')

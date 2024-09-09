@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Randomized SVD</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="menu_but">
+        <div class="one"></div>
+        <div class="two"></div>
+        <div class="three"></div>
+    </div>
+
+    <header class="navbar">
+        <a href="/index.html" class="div_nav">
+            Home
+        </a>
+        <a href="/bench1.html" class="div_nav">
+            Benchmark 1
+        </a>
+        <a href="/bench2.html" class="div_nav">
+            Benchmark 2
+        </a>
+        <a href="/bench3.html" class="div_nav">
+            Benchmark 3
+        </a>
+    </header>
+
+    <div class="image">
+        <div class="div_but" onclick="change_image(false)">
+            <input type="button" value="&lang;">
+        </div>
+        <img id="img_1" src="/images/sparse_2000.png" alt="">
+        <img id="img_2" src="/images/sparse_4000.png" alt="">
+        <img id="img_3" src="/images/sparse_6000.png" alt="">
+        <div class="div_but" onclick="change_image(true)">
+            <input type="button" value="&rang;">
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>

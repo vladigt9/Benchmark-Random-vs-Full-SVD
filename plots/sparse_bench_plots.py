@@ -57,11 +57,11 @@ def plot_timing_sparse(filename, rows,):
             if segment_x:
                 ax.plot3D(segment_x, segment_y, segment_z, label=lbl,color=solver_colors[lbl])
         
-        ax.set_title(f'Sparse SVD ({int(rows)} x {int(group)} matrix)')
+        ax.set_title(f'Sparse SVD Timing ({int(rows)} x {int(group)} matrix)')
         # ax.set_xlim(70000, 130000)
         ax.set_xlabel('Log(density)')
         ax.set_ylabel('Number of Components')
-        ax.set_zlabel('Fitting Time (seconds)')
+        ax.set_zlabel('Log(Fitting Time) (log(seconds))')
         ax.legend()
         
         handles, labels = ax.get_legend_handles_labels()
@@ -70,8 +70,8 @@ def plot_timing_sparse(filename, rows,):
 
         plt.tight_layout()
         ax.view_init(elev=14, azim=240)
-        # plt.savefig(f'images/8_{group}_{rows}.png', dpi=300, bbox_inches=None)
-        plt.show()
+        plt.savefig(f'images/8_{group}_{rows}.png', dpi=300, bbox_inches=None)
+        # plt.show()
 
 def sparse_3d_acc_plot(filename_full: str, acc_method: int, log: bool, c):
     df = pd.read_csv(filename_full)
@@ -141,15 +141,17 @@ def sparse_3d_acc_plot(filename_full: str, acc_method: int, log: bool, c):
             if segment_x:
                 ax.plot3D(segment_x, segment_y, segment_z, label=lbl, color=solver_colors[lbl])
         
-        ax.set_title(f'Sparse Randomized SVD Accuracy (50 000 x {group} matrix)')
+        ax.set_title(f'Sparse Randomized SVD Accuracy ({group} columns)')
         ax.set_xlabel('Number of Rows')
         ax.set_ylabel('Number of Components')
-        ax.set_zlabel('Relative Error')
+        ax.set_zlabel('Relative Error (%)')
+        plt.xticks(np.arange(40000, 61000, 10000))
 
         handles, labels = ax.get_legend_handles_labels()
         unique_labels = {label: handle for handle, label in zip(handles, labels)}
         plt.legend(unique_labels.values(), unique_labels.keys(), title='Density')
 
         plt.tight_layout()
-        ax.view_init(elev=10, azim=40)
+        ax.view_init(elev=10, azim=220)
+        plt.savefig(f'images/sparse_{group}.png', dpi=300, bbox_inches=None)
         plt.show()

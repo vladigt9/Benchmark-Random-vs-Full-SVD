@@ -45,7 +45,7 @@ def rand_svd_3d_timing_plot(filename):
         if segment_x:
             ax.plot3D(segment_x, segment_y, segment_z, label=lbl, color=solver_colors[lbl])
 
-    ax.set_title('Randomized SVD Timing (50 000 x 1 000 matrix) (8 Threads)') 
+    ax.set_title('Randomized SVD Timing (50 000 x 1 000 matrix) (1 Thread)') 
     ax.set_xlabel('Number of Oversamples')
     ax.set_ylabel('Number of Iterations')
     ax.set_zlabel('Fitting Time (seconds)')
@@ -56,7 +56,7 @@ def rand_svd_3d_timing_plot(filename):
 
     plt.tight_layout()
     ax.view_init(elev=10, azim=250)
-    plt.savefig('images/solo_timing_8.png', dpi=300, bbox_inches=None)
+    plt.savefig('images/solo_timing_1.png', dpi=300, bbox_inches=None)
     # plt.show()
 
 def rand_svd_3d_accuracy_plot(filename_full: str, filename_rand:str, normalizers: int, acc_method: int, log: bool):
@@ -143,7 +143,7 @@ def rand_svd_3d_accuracy_plot(filename_full: str, filename_rand:str, normalizers
         ax.set_title(f'Randomized SVD Accuracy (50 000 x 1 000 matrix)')
         ax.set_xlabel('Number of Oversamples')
         ax.set_ylabel('Number of Iterations')
-        ax.set_zlabel('Relative Error')
+        ax.set_zlabel('Relative Error (%)')
 
         handles, labels = ax.get_legend_handles_labels()
         unique_labels = {label: handle for handle, label in zip(handles, labels)}
@@ -151,5 +151,5 @@ def rand_svd_3d_accuracy_plot(filename_full: str, filename_rand:str, normalizers
 
         plt.tight_layout()
         ax.view_init(elev=10, azim=40)
-        plt.savefig('images/solo_acc_2_2.png', dpi=300, bbox_inches=None)
+        plt.savefig('images/solo_acc_2_3.png', dpi=300, bbox_inches=None)
         # plt.show()
